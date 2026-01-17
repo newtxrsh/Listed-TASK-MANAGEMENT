@@ -118,7 +118,7 @@ const handleLogout = async () => {
   height: 100vh;
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #0f1320 0%, #0a0e1a 100%);
+  background: #ffffff;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
@@ -138,13 +138,13 @@ const handleLogout = async () => {
 }
 
 .logo-icon {
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .logo-text {
   font-size: 26px;
   font-weight: 700;
-  color: white;
+  color: rgb(0, 0, 0);
   letter-spacing: -0.5px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -152,7 +152,7 @@ const handleLogout = async () => {
 /* Divider */
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(0, 0, 0);
   margin: 16px 0;
 }
 
@@ -168,22 +168,22 @@ const handleLogout = async () => {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 26px;
-  color: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  color: rgba(0, 0, 0, 0.6);
   text-decoration: none;
   transition: all 0.2s ease;
   border: 1px solid transparent;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.95);
-  transform: translateX(10px);
+  background: rgba(2, 0, 56, 0.156);
+  color:#000000;
+  transform: translateX(6px);
 }
 
 .nav-item.active {
-  background: rgba(59, 130, 246, 0.15);
-  color: #93c5fd;
+  background: rgb(15, 24, 38);
+  color: #8db3ff;
 }
 
 .nav-icon {
@@ -259,14 +259,14 @@ const handleLogout = async () => {
 .user-name {
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  color: rgb(0, 0, 0);
   line-height: 1.3;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .user-email {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
