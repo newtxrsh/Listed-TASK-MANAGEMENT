@@ -13,7 +13,7 @@ class ActivityLogsController extends Controller
         $taskId = $request->query('task_id');
 
         $query = ActivityLog::with(['task.taskCollaborators', 'subtask', 'user'])
-            // Only get logs for tasks that have MORE THAN 1 collaborator (project tasks, not board tasks)
+            // Logs task activities in the project page
             ->whereHas('task', function ($q) use ($userId) {
                 $q->where(function ($taskQuery) use ($userId) {
                     $taskQuery->where('user_id', $userId)
@@ -29,7 +29,7 @@ class ActivityLogsController extends Controller
 
         $logs = $query->orderByDesc('created_at')->limit(200)->get();
         
-        // Filter logs to only include tasks with more than 1 collaborator (matching projects endpoint logic)
+        // Filter logs to only include tasks activity in project page
         $logs = $logs->filter(function ($log) {
             return $log->task && $log->task->taskCollaborators->count() > 1;
         })->values();

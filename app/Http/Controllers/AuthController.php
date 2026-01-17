@@ -22,7 +22,7 @@ class AuthController extends Controller
             'fname' => $validated['fname'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            // Mark users as verified immediately (no email verification flow)
+            // Mark users as verified immediately
             'email_verification_token' => null,
             'is_verified' => true,
         ]);
