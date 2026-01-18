@@ -46,11 +46,11 @@ export interface UIState {
   keyboardShortcutsEnabled: boolean
   
   // View preferences
-  boardView: 'kanban' | 'list' | 'table'
+  tasksView: 'kanban' | 'list' | 'table'
   calendarView: 'month' | 'week' | 'day'
   
   // Filters persistence
-  lastBoardFilter: string
+  lastTasksFilter: string
   lastProjectFilter: string
 }
 
@@ -94,11 +94,11 @@ export const useUIStore = defineStore('ui', {
     keyboardShortcutsEnabled: true,
     
     // View preferences
-    boardView: 'kanban',
+    tasksView: 'kanban',
     calendarView: 'month',
     
     // Filters persistence
-    lastBoardFilter: 'all',
+    lastTasksFilter: 'all',
     lastProjectFilter: 'all',
   }),
 
@@ -259,8 +259,8 @@ export const useUIStore = defineStore('ui', {
     },
 
     // View preferences
-    setBoardView(view: 'kanban' | 'list' | 'table') {
-      this.boardView = view
+    setTasksView(view: 'kanban' | 'list' | 'table') {
+      this.tasksView = view
       this.persistPreferences()
     },
 
@@ -270,8 +270,8 @@ export const useUIStore = defineStore('ui', {
     },
 
     // Filter persistence
-    setLastBoardFilter(filter: string) {
-      this.lastBoardFilter = filter
+    setLastTasksFilter(filter: string) {
+      this.lastTasksFilter = filter
       this.persistPreferences()
     },
 
@@ -287,9 +287,9 @@ export const useUIStore = defineStore('ui', {
       const preferences = {
         sidebarState: this.sidebarState,
         theme: this.theme,
-        boardView: this.boardView,
+        tasksView: this.tasksView,
         calendarView: this.calendarView,
-        lastBoardFilter: this.lastBoardFilter,
+        lastTasksFilter: this.lastTasksFilter,
         lastProjectFilter: this.lastProjectFilter,
         keyboardShortcutsEnabled: this.keyboardShortcutsEnabled,
       }
@@ -306,9 +306,9 @@ export const useUIStore = defineStore('ui', {
           const preferences = JSON.parse(stored)
           this.sidebarState = preferences.sidebarState || 'expanded'
           this.theme = preferences.theme || 'dark'
-          this.boardView = preferences.boardView || 'kanban'
+          this.tasksView = preferences.tasksView || preferences.boardView || 'kanban'
           this.calendarView = preferences.calendarView || 'month'
-          this.lastBoardFilter = preferences.lastBoardFilter || 'all'
+          this.lastTasksFilter = preferences.lastTasksFilter || preferences.lastBoardFilter || 'all'
           this.lastProjectFilter = preferences.lastProjectFilter || 'all'
           this.keyboardShortcutsEnabled = preferences.keyboardShortcutsEnabled ?? true
         } catch (e) {

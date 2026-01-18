@@ -66,7 +66,7 @@ class GoogleLoginController extends Controller
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
             
             // Redirect to frontend with token as query parameter
-            // The frontend will handle storing the token and redirecting to the board
+            // The frontend will handle storing the token and redirecting to the tasks page
             return redirect($frontendUrl . '/auth/callback?token=' . $token . '&user_id=' . $user->id);
         } catch (\Exception $e) {
             // Handle errors - redirect to frontend login with error

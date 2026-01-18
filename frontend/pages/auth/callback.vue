@@ -45,8 +45,8 @@ onMounted(async () => {
       
       if (user) {
         authStore.setUser(user)
-        // Redirect to home/board
-        navigateTo('/')
+        // Redirect to tasks page
+        navigateTo('/tasks')
       } else {
         throw new Error('Failed to fetch user data')
       }

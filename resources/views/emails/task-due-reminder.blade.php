@@ -96,7 +96,7 @@
                 <p class="due-date">📅 Due: {{ \Carbon\Carbon::parse($dueDate)->format('F j, Y') }}</p>
             </div>
             
-            <p>Please check your board to view the full details and complete the task on time.</p>
+            <p>Please check your tasks page to view the full details and complete the task on time.</p>
             
             <p>Thank you!</p>
         </div>

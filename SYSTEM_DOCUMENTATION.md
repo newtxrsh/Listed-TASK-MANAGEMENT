@@ -38,7 +38,7 @@
 **Listed** is a collaborative task management application that allows users to:
 
 - Create and manage personal tasks and collaborative projects
-- Organize tasks in a Kanban board (To Do, Ongoing, Completed)
+- Organize tasks in a Kanban view (To Do, Ongoing, Completed)
 - Add collaborators to tasks for team projects
 - Attach files from local storage or Google Drive
 - View tasks in a calendar with Philippine holidays
@@ -49,7 +49,7 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Kanban Board** | Visual task organization with drag-and-drop status updates |
+| **Kanban Tasks** | Visual task organization with drag-and-drop status updates |
 | **Task Collaboration** | Invite users to collaborate on tasks |
 | **Subtasks** | Break down tasks into smaller actionable items |
 | **File Attachments** | Upload files locally or from Google Drive |
@@ -197,7 +197,7 @@ localStorage.setItem('last_activity', timestamp)
 │ 5. Frontend stores token and user data                                   │
 │    - localStorage.setItem('auth_token', token)                           │
 │    - stores/auth.ts state updated                                        │
-│    - Redirects to dashboard (/)                                          │
+│    - Redirects to tasks page (/tasks)                                    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,7 +252,7 @@ localStorage.setItem('last_activity', timestamp)
 │    - Extracts token from URL query params                                │
 │    - Stores in localStorage and auth store                               │
 │    - Fetches user data via /api/me                                       │
-│    - Redirects to dashboard (/)                                          │
+│    - Redirects to tasks page (/tasks)                                    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -338,8 +338,8 @@ const isSessionExpired = computed(() => {
 | GET | `/auth/google/callback` | `GoogleLoginController@handleGoogleCallback` | Google OAuth callback |
 | GET | `/auth/google-drive` | `GoogleDriveController@redirectToDriveAuth` | Initiate Google Drive OAuth |
 | GET | `/api/google-drive/callback` | `GoogleDriveController@handleCallback` | Google Drive OAuth callback |
-| GET | `/` | `BoardController@index` | Main board page |
-| GET | `/board` | `BoardController@index` | Main board page |
+| GET | `/` | View: `tasks` | Main tasks page |
+| GET | `/tasks` | View: `tasks` | Main tasks page (alias) |
 | GET | `/create` | View: `create` | Task creation page |
 | GET | `/projects` | View: `projects` | Projects page |
 | GET | `/calendar` | View: `calendar` | Calendar page |
@@ -489,15 +489,6 @@ const isSessionExpired = computed(() => {
 - Uses Google Calendar API with public calendar ID
 - Caches results to reduce API calls
 - Returns holidays for current year
-
----
-
-#### BoardController
-**File:** [app/Http/Controllers/BoardController.php](app/Http/Controllers/BoardController.php)
-
-| Method | Description |
-|--------|-------------|
-| `index()` | Renders the main board view (JavaScript handles auth via API) |
 
 ---
 
@@ -762,8 +753,9 @@ const isSessionExpired = computed(() => {
 
 | Route | File | Layout | Description |
 |-------|------|--------|-------------|
-| `/` | `index.vue` | default | **Main Board** - Kanban board for personal tasks (≤1 collaborator) |
-| `/board` | `board.vue` | default | Redirects to `/` |
+| `/` | `index.vue` | default | Redirects to `/tasks` |
+| `/tasks` | `tasks.vue` | default | **Main Tasks** - Kanban view for personal tasks (≤1 collaborator) |
+| `/board` | `board.vue` | default | Redirects to `/tasks` (legacy) |
 | `/create` | `create.vue` | default | **Create Task** - Form with all task options |
 | `/projects` | `projects.vue` | default | **Projects View** - Kanban for collaborative tasks (>1 collaborator) |
 | `/calendar` | `calendar.vue` | default | **Calendar View** - Monthly calendar with holidays |
@@ -1003,9 +995,9 @@ Centered layout for login/register pages without sidebar.
 | Component | Purpose |
 |-----------|---------|
 | `TheSidebar.vue` | Navigation sidebar with logo, links, user info, logout |
-| `board/TaskCard.vue` | Task card displayed in Kanban columns |
-| `board/KanbanColumn.vue` | Kanban board column (To Do, Ongoing, Completed) |
-| `TaskModal.vue` | Full task details modal with subtasks, collaborators, attachments |
+| `tasks/TaskCard.vue` | Task card displayed in Kanban columns |
+| `tasks/KanbanColumn.vue` | Kanban column (To Do, Ongoing, Completed) |
+| `tasks/TaskModal.vue` | Full task details modal with subtasks, collaborators, attachments |
 | `NotificationBell.vue` | Notification bell icon with flyout panel |
 | `ToastNotification.vue` | Toast notification display |
 | `ConfirmDialog.vue` | Confirmation dialog modal |
@@ -1235,7 +1227,7 @@ $url = "https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events";
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ 5. Backend returns created task with all relations                       │
 │    Frontend updates tasks store                                          │
-│    User redirected to board/home                                         │
+│    User redirected to tasks page                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1243,7 +1235,7 @@ $url = "https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events";
 
 **Business Logic:**
 - **Personal Tasks:** Tasks where `taskCollaborators.count() <= 1`
-  - Displayed on Board page (`/`)
+  - Displayed on Tasks page (`/tasks`)
   - Only the creator can see and manage
   
 - **Projects:** Tasks where `taskCollaborators.count() > 1`

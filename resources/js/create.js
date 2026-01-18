@@ -537,9 +537,9 @@ document.getElementById('createTaskForm').addEventListener('submit', async funct
             successDiv.style.display = 'block';
             
             // Determine redirect destination based on collaborators
-            // If collaborators were added, redirect to projects, otherwise to board
+            // If collaborators were added, redirect to projects, otherwise to tasks
             const hasCollaborators = collaborators.length > 0;
-            const redirectUrl = hasCollaborators ? '/projects' : '/board';
+            const redirectUrl = hasCollaborators ? '/projects' : '/tasks';
             
             setTimeout(() => {
                 window.location.href = redirectUrl;

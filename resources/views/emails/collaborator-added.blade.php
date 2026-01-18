@@ -100,7 +100,7 @@
                 @endif
             </div>
             
-            <p>Please check your board to view the full details of the task.</p>
+            <p>Please check your tasks page to view the full details of the task.</p>
             
             <p>Thank you!</p>
         </div>

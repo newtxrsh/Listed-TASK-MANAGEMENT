@@ -68,8 +68,8 @@ class AuthController extends Controller
             ]);
         }
 
-        // For web requests, redirect to board page
-        return redirect()->route('board')->with('token', $token);
+        // For web requests, redirect to tasks page
+        return redirect()->route('tasks')->with('token', $token);
     }
 
     public function me(Request $request)

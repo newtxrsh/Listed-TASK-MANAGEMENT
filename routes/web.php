@@ -6,7 +6,6 @@ use App\Http\Controllers\SubtasksController;
 use App\Http\Controllers\TaskCollaboratorsController;
 use App\Http\Controllers\AttachmentsController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BoardController;
 use App\Http\Controllers\GoogleLoginController;
 use App\Http\Controllers\GoogleDriveController;
 use Illuminate\Support\Facades\Route;
@@ -39,8 +38,8 @@ Route::get('/api/google-drive/callback', [GoogleDriveController::class, 'handleC
 
 // main application routes
 Route::get('/', function () {
-    return view('board');
-})->name('board');
+    return view('tasks');
+})->name('tasks');
 Route::get('/create', function () {
     return view('create');
 })->name('create');

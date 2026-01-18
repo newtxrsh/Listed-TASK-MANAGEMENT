@@ -36,7 +36,7 @@ Whether you're managing school assignments, work projects, or personal to-dos, L
 
 | Feature | Description |
 |---------|-------------|
-| 🎯 **Kanban Board** | Visual task organization with intuitive drag-and-drop status updates across To Do, Ongoing, and Completed columns |
+| 🎯 **Kanban Tasks** | Visual task organization with intuitive drag-and-drop status updates across To Do, Ongoing, and Completed columns |
 | 👥 **Task Collaboration** | Invite users to collaborate on tasks and projects with real-time activity tracking |
 | ✅ **Subtasks** | Break down complex tasks into smaller, actionable items with individual status tracking |
 | 📎 **File Attachments** | Upload files from local storage or directly from Google Drive using the Google Picker API |

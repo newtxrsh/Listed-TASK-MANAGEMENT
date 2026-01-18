@@ -30,7 +30,7 @@ export const useTasksStore = defineStore('tasks', {
   }),
 
   getters: {
-    // Filter for personal board (tasks without multiple collaborators)
+    // Filter for personal tasks view (tasks without multiple collaborators)
     personalTasks: (state): Task[] => {
       return state.tasks.filter(task => {
         const collaborators = task.task_collaborators || []

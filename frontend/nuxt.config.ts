@@ -81,7 +81,7 @@ export default defineNuxtConfig({
   // Route rules for authentication
   routeRules: {
     '/': { ssr: false },
-    '/board': { ssr: false },
+    '/tasks': { ssr: false },
     '/create': { ssr: false },
     '/projects': { ssr: false },
     '/calendar': { ssr: false },

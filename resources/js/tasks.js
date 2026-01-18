@@ -106,7 +106,7 @@ function taskHasCollaborators(task) {
     return false;
 }
 
-// Render tasks in the Kanban board
+// Render tasks in the Kanban tasks view
 function renderTasks(tasks) {
     const taskGroups = { pending: [], ongoing: [], completed: [] };
 
@@ -511,13 +511,13 @@ function openTaskModal(task) {
                             progressSection.style.display = 'block';
                         }
                         
-                        // Update the task in allTasks array to sync with board
+                        // Update the task in allTasks array to sync with tasks view
                         const taskIndex = allTasks.findIndex(t => t.task_id === window.currentTask.task_id);
                         if (taskIndex !== -1) {
                             allTasks[taskIndex] = { ...window.currentTask };
                         }
                         
-                        // Refresh the board to update progress bar on task card
+                        // Refresh the tasks view to update progress bar on task card
                         applyFilters();
                         
                         // Check if all subtasks are completed and auto-complete task
@@ -546,7 +546,7 @@ function openTaskModal(task) {
                                 document.getElementById('modalProgressFill').style.width = '100%';
                                 document.getElementById('modalProgressText').textContent = '100% complete';
                                 
-                                // Refresh the board to move the card to Completed column
+                                // Refresh the tasks view to move the card to Completed column
                                 applyFilters();
                             }
                         }
@@ -811,7 +811,7 @@ document.getElementById('statusSelect').addEventListener('change', async functio
             // Update window.currentTask with the updated task data
             window.currentTask = updatedTask;
             
-            // Reload tasks to reflect the change in the board
+            // Reload tasks to reflect the change in the tasks view
             applyFilters();
             
             // Close modal

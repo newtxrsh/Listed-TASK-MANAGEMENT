@@ -57,14 +57,14 @@
 
         <!-- Navigation -->
         <nav class="nav-section">
-            <a href="{{ route('board') }}" class="nav-item {{ request()->routeIs('board') ? 'active' : '' }}">
+            <a href="{{ route('tasks') }}" class="nav-item {{ request()->routeIs('tasks') ? 'active' : '' }}">
                 <div class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="14" height="14" rx="2"/>
-                        <rect x="7" y="7" width="6" height="6" rx="1"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                     </svg>
                 </div>
-                <span>Board</span>
+                <span>Tasks</span>
             </a>
             <a href="{{ route('create') }}" class="nav-item {{ request()->routeIs('create') ? 'active' : '' }}">
                 <div class="nav-icon">

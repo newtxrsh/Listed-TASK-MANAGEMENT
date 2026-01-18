@@ -117,7 +117,7 @@ onMounted(() => {
     countdown.value--
     if (countdown.value <= 0) {
       if (countdownInterval) clearInterval(countdownInterval)
-      navigateTo('/')
+      navigateTo('/tasks')
     }
   }, 1000)
 

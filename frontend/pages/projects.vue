@@ -233,7 +233,7 @@
 
 <script setup lang="ts">
 import ProjectCard from '../components/projects/ProjectCard.vue'
-import TaskModal from '~/components/board/TaskModal.vue'
+import TaskModal from '~/components/tasks/TaskModal.vue'
 import ProjectSkeleton from '~/components/projects/ProjectSkeleton.vue'
 
 // SEO Meta

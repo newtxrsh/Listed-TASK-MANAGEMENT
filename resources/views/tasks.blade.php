@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @push('styles')
-    @vite(['resources/css/board.css'])
+    @vite(['resources/css/tasks.css'])
 @endpush
 
 @section('content')
-<!-- Board Header -->
-<div class="board-header">
-    <h1 class="board-title">Board</h1>
+<!-- Tasks Header -->
+<div class="tasks-header">
+    <h1 class="tasks-title">Tasks</h1>
     
-    <div class="board-controls">
+    <div class="tasks-controls">
         <div class="search-bar">
             <input type="text" class="search-input" placeholder="Search" id="searchInput">
             <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
@@ -269,5 +269,5 @@
             {{ session()->forget('google_auth_token') }}
         @endif
     </script>
-    @vite(['resources/js/board.js'])
+    @vite(['resources/js/tasks.js'])
 @endpush
