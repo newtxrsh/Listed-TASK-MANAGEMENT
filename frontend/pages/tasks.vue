@@ -60,20 +60,14 @@
     <KanbanSkeleton v-if="loading" :cards-per-column="3" />
 
     <!-- Centralized Empty State -->
-    <div v-else-if="filteredTasks.length === 0" class="flex flex-col items-center justify-center py-20">
+    <div v-else-if="filteredTasks.length === 0" class="flex flex-col items-center justify-center py-20 mb-10">
       <div class="w-16 h-16 mb-4 text-white/20">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="4" y="3" width="16" height="18" rx="2" stroke-width="1.5"/>
-          <line x1="8" y1="7" x2="16" y2="7" stroke-width="1.5"/>
-          <line x1="8" y1="11" x2="16" y2="11" stroke-width="1.5"/>
-          <line x1="8" y1="15" x2="12" y2="15" stroke-width="1.5"/>
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke-width="1.5"/>
         </svg>
       </div>
       <p class="text-white/40 text-base mb-4">No task created.</p>
-      <NuxtLink 
-        to="/create"
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-3xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200"
-      >
+      <NuxtLink to="/create" class="w-fit inline-flex items-center gap-2 px-5 py-2.5 bg-[#0f1826] text-[#8db3ff] border border-[#8db3ff]/20 font-semibold rounded-md transition-colors duration-200 hover:bg-[#1a2942] hover:text-[#a3c2ff]">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
