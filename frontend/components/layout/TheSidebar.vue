@@ -179,7 +179,7 @@ const handleLogout = async () => {
   gap: 14px;
   padding: 14px 16px;
   border-radius: 8px;
-  color: rgba(0, 0, 0, 0.6);
+  color: #000000;
   text-decoration: none;
   transition: all 0.2s ease;
   border: 1px solid transparent;
