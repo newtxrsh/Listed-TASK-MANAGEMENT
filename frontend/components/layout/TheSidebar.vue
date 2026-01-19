@@ -3,7 +3,7 @@
     <!-- Logo Section -->
     <div class="logo-section">
       <div class="logo-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 12h4l3-9 4 18 3-9h4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
@@ -176,7 +176,7 @@ const handleLogout = async () => {
 }
 
 .logo-text {
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 700;
   color: rgb(255, 255, 255);
   letter-spacing: -0.5px;
@@ -188,16 +188,16 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 12px;
   margin-top: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 6px;
   background: rgb(255, 255, 255);
   border: none;
   border-radius: 8px;
   color: #000000;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   cursor: pointer;
@@ -233,8 +233,8 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
   color: #ffffff;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -269,7 +269,7 @@ const handleLogout = async () => {
 }
 
 .nav-text {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
