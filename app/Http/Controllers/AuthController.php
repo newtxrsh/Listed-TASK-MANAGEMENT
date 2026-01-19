@@ -13,13 +13,19 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'fname' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
         ]);
 
+        // Combine first_name and last_name into fname (full name)
+        $fullName = trim($validated['first_name'] . ' ' . $validated['last_name']);
+
         $user = User::create([
-            'fname' => $validated['fname'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'fname' => $fullName,
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             // Mark users as verified immediately

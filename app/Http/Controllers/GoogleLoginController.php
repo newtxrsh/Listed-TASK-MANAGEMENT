@@ -35,19 +35,29 @@ class GoogleLoginController extends Controller
                 }
             } else {
                 // Create new user
-                // Split name into first name (use first part of name or email prefix)
+                // Split name into first name and last name
                 $googleName = $googleUser->name ?? $googleUser->nickname ?? null;
+                $firstName = '';
+                $lastName = '';
+                
                 if ($googleName) {
-                    $nameParts = explode(' ', $googleName, 2);
+                    $nameParts = explode(' ', trim($googleName), 2);
                     $firstName = $nameParts[0];
+                    $lastName = $nameParts[1] ?? '';
                 } else {
                     // Fallback to email prefix if no name
                     $emailParts = explode('@', $googleUser->email);
                     $firstName = $emailParts[0];
+                    $lastName = '';
                 }
 
+                // Combine first_name and last_name into fname (full name)
+                $fullName = trim($firstName . ' ' . $lastName);
+
                 $user = User::create([
-                    'fname' => $firstName,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'fname' => $fullName,
                     'email' => $googleUser->email,
                     'password' => Hash::make(Str::random(32)), // Random password since they use Google
                     'is_verified' => true, // Google already verified the email
