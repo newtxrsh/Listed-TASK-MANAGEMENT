@@ -4,6 +4,8 @@ export interface User {
   id: number
   email: string
   fname?: string
+  first_name?: string
+  last_name?: string
   lname?: string
   profile_picture?: string
   created_at?: string
