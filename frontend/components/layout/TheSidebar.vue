@@ -349,20 +349,18 @@ const handleLogout = async () => {
   padding: 14px 16px;
   background: transparent;
   border: 2px solid #ef4444;
-  border-radius: 12px;
+  border-radius: 6px;
   color: #ef4444;
   font-size: 15px;
   font-weight: 600;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
   background: rgba(239, 68, 68, 0.1);
   border-color: #f87171;
   color: #f87171;
-  transform: translateY(-3px);
 }
 
 .logout-btn:active {
