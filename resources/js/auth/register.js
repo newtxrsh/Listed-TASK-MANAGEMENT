@@ -75,10 +75,10 @@ window.registerForm = function() {
                     localStorage.setItem('auth_token', data.token);
                 }
 
-                this.successMessage = 'Account created successfully! Redirecting...';
+                this.successMessage = 'Account created successfully! Redirecting to email verification...';
 
                 setTimeout(() => {
-                    window.location.href = '/verification-success';
+                    window.location.href = data.redirect_url || '/verify-email';
                 }, 1500);
                 
             } catch (error) {

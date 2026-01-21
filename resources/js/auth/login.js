@@ -31,9 +31,10 @@ window.loginForm = function() {
                 
                 if (response.ok) {
                     localStorage.setItem('auth_token', data.token);
-                    this.successMessage = 'Login successful!';
+                    const isVerified = data?.user?.is_verified;
+                    this.successMessage = isVerified ? 'Login successful!' : 'Login successful! Please verify your email...';
                     setTimeout(() => {
-                        window.location.href = '/';
+                        window.location.href = isVerified ? '/' : '/verify-email';
                     }, 1000);
                 } else {
                     this.errorMessage = data.message || 'Login failed. Please try again.';

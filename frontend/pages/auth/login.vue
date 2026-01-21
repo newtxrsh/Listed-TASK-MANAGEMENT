@@ -165,6 +165,27 @@ const authStore = useAuthStore()
 const config = useRuntimeConfig()
 const route = useRoute()
 
+// Navigation guard: redirect authenticated and verified users
+onMounted(async () => {
+  if (authStore.isLoading) {
+    await authStore.initializeAuth()
+  }
+
+  if (authStore.isAuthenticated) {
+    const user = authStore.user
+    const isVerified = user?.is_verified ?? false
+    
+    if (isVerified) {
+      // Already logged in and verified, redirect to main app
+      const redirect = (route.query.redirect as string) || '/tasks'
+      navigateTo(redirect)
+    } else {
+      // Logged in but not verified, redirect to verification
+      navigateTo('/auth/verify-email')
+    }
+  }
+})
+
 // Form state
 const email = ref('')
 const password = ref('')
@@ -195,9 +216,12 @@ const submitForm = async () => {
     const result = await authStore.login(email.value, password.value)
     
     if (result.success) {
-      successMessage.value = 'Login successful!'
+      const user = authStore.user
+      const isVerified = user?.is_verified ?? false
+      
+      successMessage.value = isVerified ? 'Login successful!' : 'Login successful! Please verify your email...'
       setTimeout(() => {
-        navigateTo(redirectUrl.value)
+        navigateTo(isVerified ? redirectUrl.value : '/auth/verify-email')
       }, 1000)
     } else {
       errorMessage.value = result.error || 'Login failed. Please try again.'

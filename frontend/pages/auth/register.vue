@@ -257,6 +257,9 @@ useHead({
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
+// LocalStorage key for registration data
+const REGISTRATION_DATA_KEY = 'pending_registration'
+
 // Form state
 const firstName = ref('')
 const lastName = ref('')
@@ -270,6 +273,125 @@ const loading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const passwordStrength = ref(0)
+
+// Countdown timer state for rate limiting
+const countdownSeconds = ref(0)
+let countdownTimer: NodeJS.Timeout | null = null
+
+// Format seconds into "X minutes and Y seconds" format
+const formatCountdown = (seconds: number): string => {
+  if (seconds <= 0) return '0 seconds'
+  
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  
+  const parts: string[] = []
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`)
+  }
+  if (secs > 0) {
+    parts.push(`${secs} ${secs === 1 ? 'second' : 'seconds'}`)
+  }
+  
+  return parts.join(' and ')
+}
+
+// Computed countdown message
+const countdownMessage = computed(() => {
+  if (countdownSeconds.value > 0) {
+    return `Please wait ${formatCountdown(countdownSeconds.value)} before requesting a new code.`
+  }
+  return ''
+})
+
+// Start countdown timer
+const startCountdown = (seconds: number) => {
+  stopCountdown()
+  countdownSeconds.value = Math.max(0, Math.floor(seconds))
+  
+  if (countdownSeconds.value > 0) {
+    countdownTimer = setInterval(() => {
+      countdownSeconds.value = Math.max(0, countdownSeconds.value - 1)
+      if (countdownSeconds.value <= 0) {
+        stopCountdown()
+        // Clear error message when countdown ends
+        if (errorMessage.value.includes('Please wait')) {
+          errorMessage.value = ''
+        }
+      }
+    }, 1000)
+  }
+}
+
+// Stop countdown timer
+const stopCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+}
+
+// Save registration data to localStorage in real-time
+const saveRegistrationData = () => {
+  if (import.meta.client) {
+    const data = {
+      firstName: firstName.value,
+      lastName: lastName.value,
+      email: email.value,
+      password: password.value,
+      confirmPassword: confirmPassword.value,
+    }
+    localStorage.setItem(REGISTRATION_DATA_KEY, JSON.stringify(data))
+  }
+}
+
+// Load registration data from localStorage
+const loadRegistrationData = () => {
+  if (import.meta.client) {
+    const storedData = localStorage.getItem(REGISTRATION_DATA_KEY)
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData)
+        firstName.value = data.firstName || ''
+        lastName.value = data.lastName || ''
+        email.value = data.email || ''
+        password.value = data.password || ''
+        confirmPassword.value = data.confirmPassword || ''
+        // Recalculate password strength
+        if (password.value) {
+          checkPasswordStrength()
+        }
+      } catch (e) {
+        console.error('Failed to parse stored registration data:', e)
+      }
+    }
+  }
+}
+
+// Watch form fields and save to localStorage on change
+watch([firstName, lastName, email, password, confirmPassword], () => {
+  saveRegistrationData()
+}, { deep: true })
+
+// Navigation guard: redirect authenticated and verified users
+onMounted(async () => {
+  // Load saved registration data first
+  loadRegistrationData()
+
+  if (authStore.isLoading) {
+    await authStore.initializeAuth()
+  }
+
+  if (authStore.isAuthenticated) {
+    const user = authStore.user
+    const isVerified = user?.is_verified ?? false
+    
+    if (isVerified) {
+      // Already logged in and verified, redirect to main app
+      navigateTo('/tasks')
+    }
+  }
+})
 
 // Computed properties
 const passwordsMatch = computed(() => password.value === confirmPassword.value)
@@ -320,24 +442,33 @@ const submitForm = async () => {
     return
   }
 
+  // Don't submit if countdown is active
+  if (countdownSeconds.value > 0) {
+    return
+  }
+
   loading.value = true
   errorMessage.value = ''
   successMessage.value = ''
 
   try {
-    const result = await authStore.register(email.value, password.value, firstName.value, lastName.value)
+    // Send OTP to email without creating account yet
+    const result = await authStore.sendRegistrationOtp(email.value, firstName.value, lastName.value)
     
     if (result.success) {
-      successMessage.value = 'Account created successfully!'
-      // Redirect to verification success page with token
+      successMessage.value = 'Proceeding to email verification...'
+      // Redirect to email verification page
       setTimeout(() => {
-        navigateTo({
-          path: '/auth/verification-success',
-          query: { token: result.token }
-        })
+        navigateTo('/auth/verify-email')
       }, 1000)
     } else {
-      errorMessage.value = result.error || 'Registration failed. Please try again.'
+      // Check if there's a retry_after_seconds in the error response
+      if (result.retryAfterSeconds && result.retryAfterSeconds > 0) {
+        startCountdown(result.retryAfterSeconds)
+        errorMessage.value = countdownMessage.value
+      } else {
+        errorMessage.value = result.error || 'Failed to send verification code. Please try again.'
+      }
     }
   } catch (error) {
     errorMessage.value = 'An error occurred. Please try again.'
@@ -345,6 +476,18 @@ const submitForm = async () => {
     loading.value = false
   }
 }
+
+// Update error message when countdown changes
+watch(countdownSeconds, () => {
+  if (countdownSeconds.value > 0 && errorMessage.value.includes('Please wait')) {
+    errorMessage.value = countdownMessage.value
+  }
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  stopCountdown()
+})
 </script>
 
 <style scoped>

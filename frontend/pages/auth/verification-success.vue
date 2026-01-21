@@ -31,7 +31,7 @@
       </div>
 
       <!-- Title & Copy -->
-      <h1 class="mb-2 text-2xl font-semibold tracking-tight text-white md:text-3xl mb-6">Account Verified</h1>
+      <h1 class="mb-6 text-2xl font-semibold tracking-tight text-white md:text-3xl">Account Verified</h1>
 
       <!-- Status List -->
       <div class="mb-8 rounded-xl border border-white/10 bg-white/5 px-5 py-5 text-left">
@@ -48,17 +48,30 @@
         </p>
       </div>
 
+      <!-- Auto-redirect countdown -->
+      <div class="mb-6 text-left">
+        <p class="text-sm text-white/60 mb-3 font-semibold">
+          Redirecting in 
+          <span class="text-white/80 font-semibold">({{ countdown }}s)</span>
+        </p>
+        <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+          <div
+            class="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
+            :style="{ width: `${progressPercent}%` }"
+          ></div>
+        </div>
+      </div>
+
       <!-- Action Button -->
-      <NuxtLink 
-        to="/tasks"
-        @click="storeToken"
+      <button
+        @click="goToTasks"
         class="inline-flex items-center gap-2 rounded-3xl bg-blue-800/30 px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-blue-800/50 hover:shadow-lg"
       >
         <span class="text-lg text-bold">Go to Tasks</span>
         <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
         </svg>
-      </NuxtLink>
+      </button>
     </div>
   </div>
 </template>
@@ -78,27 +91,111 @@ const authStore = useAuthStore()
 // State
 const showConfetti = ref(true)
 const confettiColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+let autoRedirectTimer: NodeJS.Timeout | null = null
 
+const initialCountdown = 5
+const countdown = ref(initialCountdown)
+const progressPercent = ref(100)
+let animationFrameId: number | null = null
+let startTimeMs = 0
+
+const startCountdownAnimation = () => {
+  // reset state
+  startTimeMs = Date.now()
+  countdown.value = initialCountdown
+  progressPercent.value = 100
+
+  const durationMs = initialCountdown * 1000
+
+  const tick = () => {
+    const elapsed = Date.now() - startTimeMs
+    const remaining = Math.max(0, durationMs - elapsed)
+
+    // Smooth bar (updates ~60fps)
+    progressPercent.value = (remaining / durationMs) * 100
+
+    // Integer label (5,4,3,2,1,0)
+    countdown.value = Math.ceil(remaining / 1000)
+
+    if (remaining > 0) {
+      animationFrameId = requestAnimationFrame(tick)
+    } else {
+      animationFrameId = null
+    }
+  }
+
+  animationFrameId = requestAnimationFrame(tick)
+}
 // Get token from query params
 const token = computed(() => route.query.token as string | undefined)
 
-// Store the token if available
-const storeToken = () => {
+// Navigate to tasks and replace history to prevent back navigation
+const goToTasks = () => {
   if (token.value) {
     authStore.setToken(token.value)
   }
+  // Use replace: true to prevent back button from going to verification-success
+  navigateTo('/tasks', { replace: true })
 }
 
-onMounted(() => {
+// Navigation guard: ensure user is authenticated and verified
+onMounted(async () => {
+  // Wait for auth to initialize
+  if (authStore.isLoading) {
+    await authStore.initializeAuth()
+  }
+
   // Store token immediately if available
   if (token.value) {
     authStore.setToken(token.value)
+    // Refresh user data after setting token
+    await authStore.refreshUser()
   }
 
-  // Hide confetti after 4 seconds
+  // If not authenticated, redirect to login
+  if (!authStore.isAuthenticated) {
+    navigateTo('/auth/login')
+    return
+  }
+
+  // Refresh user to get latest verification status
+  await authStore.refreshUser()
+  const user = authStore.user
+  const isVerified = user?.is_verified ?? false
+
+  // If not verified, redirect to verification page
+  if (!isVerified) {
+    navigateTo('/auth/verify-email', { replace: true })
+    return
+  }
+
+  // Consume the one-time access token so back button can't reopen this page later
+  authStore.clearJustVerified()
+
+  // Clear registration data from localStorage after successful verification
+  localStorage.removeItem('pending_registration')
+
+  // Auto-redirect verified users to tasks after a short delay (prevent staying on this page)
+  startCountdownAnimation()
+
+  autoRedirectTimer = setTimeout(() => {
+    navigateTo('/tasks', { replace: true })
+  }, 5000) // Redirect after 5 seconds
+
+  // Hide confetti after 6 seconds
   setTimeout(() => {
     showConfetti.value = false
-  }, 4000)
+  }, 6000)
+})
+
+// Cleanup timer on unmount
+onUnmounted(() => {
+  if (autoRedirectTimer) {
+    clearTimeout(autoRedirectTimer)
+  }
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId)
+  }
 })
 
 </script>
