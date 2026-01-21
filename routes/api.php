@@ -19,6 +19,11 @@ Route::get('/ping', function () { return response()->json(['status' => 'ok']); }
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Registration OTP routes (public - no auth required, account created after verification)
+Route::post('/send-registration-otp', [AuthController::class, 'sendRegistrationOtp'])->middleware('throttle:5,1');
+Route::post('/resend-registration-otp', [AuthController::class, 'resendRegistrationOtp'])->middleware('throttle:3,1');
+Route::post('/verify-and-register', [AuthController::class, 'verifyAndRegister'])->middleware('throttle:6,1');
+
 // Google Drive routes (public config)
 Route::get('/google-drive/config', [GoogleDriveController::class, 'getConfig']);
 
@@ -32,6 +37,10 @@ Route::get('/holidays', [HolidaysController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Email verification (OTP)
+    Route::post('/email/verify-otp', [AuthController::class, 'verifyEmailOtp'])->middleware('throttle:6,1');
+    Route::post('/email/resend-otp', [AuthController::class, 'resendEmailOtp'])->middleware('throttle:3,1');
 
     Route::get('/users', [UsersController::class, 'apiIndex']);
     Route::get('/users/check-user', [UsersController::class, 'checkUser']);
