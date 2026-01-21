@@ -9,6 +9,7 @@ export interface User {
   lname?: string
   profile_picture?: string | null
   email_verified_at?: string | null
+  is_verified?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -55,7 +56,7 @@ export const useAuthStore = defineStore('auth', {
       if (state.user?.email) return state.user.email[0].toUpperCase()
       return 'U'
     },
-    isEmailVerified: (state) => !!state.user?.email_verified_at,
+    isEmailVerified: (state) => !!(state.user?.is_verified || state.user?.email_verified_at),
     isSessionExpired: (state) => {
       if (!state.lastActivity || !state.isAuthenticated) return false
       return Date.now() - state.lastActivity > state.sessionTimeout
@@ -63,6 +64,19 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    markJustVerified() {
+      // One-time allowlist for visiting verification success page
+      if (import.meta.client) {
+        sessionStorage.setItem('just_verified_at', String(Date.now()))
+      }
+    },
+
+    clearJustVerified() {
+      if (import.meta.client) {
+        sessionStorage.removeItem('just_verified_at')
+      }
+    },
+
     setToken(token: string) {
       this.token = token
       this.isAuthenticated = true
@@ -238,6 +252,131 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.clearAuth()
         navigateTo('/auth/login')
+      }
+    },
+
+    async verifyEmailOtp(code: string) {
+      const config = useRuntimeConfig()
+      
+      try {
+        const response = await $fetch<{ message: string; redirect_url?: string }>(`${config.public.apiBase}/email/verify-otp`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+          body: { code },
+        })
+
+        // Refresh user data after verification
+        await this.refreshUser()
+
+        // If the user is now verified, allow the success page once
+        if (this.user?.is_verified) {
+          this.markJustVerified()
+        }
+
+        return { success: true, message: response.message, redirectUrl: response.redirect_url }
+      } catch (error: any) {
+        const message = error?.data?.message || 'Verification failed. Please try again.'
+        const code = error?.data?.code
+        return { success: false, error: message, code }
+      }
+    },
+
+    async resendEmailOtp() {
+      const config = useRuntimeConfig()
+      
+      try {
+        const response = await $fetch<{ message: string; expires_in_seconds?: number }>(`${config.public.apiBase}/email/resend-otp`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        })
+
+        return { 
+          success: true, 
+          message: response.message,
+          expiresInSeconds: response.expires_in_seconds 
+        }
+      } catch (error: any) {
+        const message = error?.data?.message || 'Unable to resend code right now.'
+        const retryAfterSeconds = error?.data?.retry_after_seconds
+        return { success: false, error: message, retryAfterSeconds }
+      }
+    },
+
+    // New method: Send OTP for registration without creating account
+    async sendRegistrationOtp(email: string, firstName: string, lastName: string) {
+      const config = useRuntimeConfig()
+      
+      try {
+        const response = await $fetch<{ message: string }>(`${config.public.apiBase}/send-registration-otp`, {
+          method: 'POST',
+          body: { email, first_name: firstName, last_name: lastName },
+        })
+
+        return { success: true, message: response.message }
+      } catch (error: any) {
+        const message = error?.data?.message || 'Failed to send verification code. Please try again.'
+        const retryAfterSeconds = error?.data?.retry_after_seconds
+        return { success: false, error: message, retryAfterSeconds }
+      }
+    },
+
+    // New method: Resend OTP for registration (no auth required)
+    async resendRegistrationOtp(email: string, firstName: string, lastName: string) {
+      const config = useRuntimeConfig()
+      
+      try {
+        const response = await $fetch<{ message: string; expires_in_seconds?: number }>(`${config.public.apiBase}/resend-registration-otp`, {
+          method: 'POST',
+          body: { email, first_name: firstName, last_name: lastName },
+        })
+
+        return { 
+          success: true, 
+          message: response.message,
+          expiresInSeconds: response.expires_in_seconds 
+        }
+      } catch (error: any) {
+        const message = error?.data?.message || 'Unable to resend code right now.'
+        const retryAfterSeconds = error?.data?.retry_after_seconds
+        return { success: false, error: message, retryAfterSeconds }
+      }
+    },
+
+    // New method: Verify OTP and create account
+    async verifyAndCreateAccount(code: string, email: string, password: string, firstName: string, lastName: string) {
+      const config = useRuntimeConfig()
+      
+      try {
+        const response = await $fetch<{ token: string; message: string; user?: any }>(`${config.public.apiBase}/verify-and-register`, {
+          method: 'POST',
+          body: { code, email, password, first_name: firstName, last_name: lastName },
+        })
+
+        if (response.token) {
+          this.setToken(response.token)
+        }
+
+        if (response.user) {
+          this.setUser(response.user)
+        } else {
+          // Fetch user data if not returned
+          await this.refreshUser()
+        }
+
+        // Mark as just verified for success page access
+        if (this.user?.is_verified) {
+          this.markJustVerified()
+        }
+
+        return { success: true, message: response.message }
+      } catch (error: any) {
+        const message = error?.data?.message || 'Verification failed. Please try again.'
+        const code = error?.data?.code
+        return { success: false, error: message, code }
       }
     },
   },
