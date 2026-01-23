@@ -126,14 +126,9 @@ const startCountdownAnimation = () => {
 
   animationFrameId = requestAnimationFrame(tick)
 }
-// Get token from query params
-const token = computed(() => route.query.token as string | undefined)
-
 // Navigate to tasks and replace history to prevent back navigation
 const goToTasks = () => {
-  if (token.value) {
-    authStore.setToken(token.value)
-  }
+  // Session is already established via cookies, no token needed
   // Use replace: true to prevent back button from going to verification-success
   navigateTo('/tasks', { replace: true })
 }
@@ -145,12 +140,9 @@ onMounted(async () => {
     await authStore.initializeAuth()
   }
 
-  // Store token immediately if available
-  if (token.value) {
-    authStore.setToken(token.value)
-    // Refresh user data after setting token
-    await authStore.refreshUser()
-  }
+  // Session is already established via cookies from registration/verification
+  // Just refresh user data to ensure we have the latest info
+  await authStore.refreshUser()
 
   // If not authenticated, redirect to login
   if (!authStore.isAuthenticated) {

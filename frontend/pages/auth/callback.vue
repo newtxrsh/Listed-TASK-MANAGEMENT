@@ -23,7 +23,6 @@ const authStore = useAuthStore()
 const { fetchCurrentUser } = useApi()
 
 onMounted(async () => {
-  const token = route.query.token as string
   const error = route.query.error as string
 
   if (error) {
@@ -35,32 +34,42 @@ onMounted(async () => {
     return
   }
 
-  if (token) {
-    try {
-      // Store the token
-      authStore.setToken(token)
+  // Google OAuth now uses session-based authentication
+  // The backend has already established a session, so we just need to verify it
+  try {
+    // Fetch user data using session cookie (sent automatically)
+    const user = await fetchCurrentUser()
+    
+    if (user) {
+      // Session is valid - set user and authenticated state
+      authStore.setUser(user)
+      authStore.setAuthenticated()
       
-      // Fetch user data
-      const user = await fetchCurrentUser()
-      
-      if (user) {
-        authStore.setUser(user)
-        // Redirect to tasks page
-        navigateTo('/tasks')
-      } else {
-        throw new Error('Failed to fetch user data')
-      }
-    } catch (err) {
-      console.error('OAuth callback error:', err)
-      authStore.logout()
+      // Redirect to tasks page
+      navigateTo('/tasks')
+    } else {
+      // No user data - session might not be established
+      console.error('Failed to fetch user data after Google OAuth')
       navigateTo({
         path: '/auth/login',
         query: { error: 'Authentication failed. Please try again.' }
       })
     }
-  } else {
-    // No token provided
-    navigateTo('/auth/login')
+  } catch (err: any) {
+    console.error('OAuth callback error:', err)
+    
+    // If 401, session is invalid/expired
+    if (err?.response?.status === 401) {
+      navigateTo({
+        path: '/auth/login',
+        query: { error: 'Session expired. Please try again.' }
+      })
+    } else {
+      navigateTo({
+        path: '/auth/login',
+        query: { error: 'Authentication failed. Please try again.' }
+      })
+    }
   }
 })
 </script>

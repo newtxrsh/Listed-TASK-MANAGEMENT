@@ -306,9 +306,7 @@ export const useTasksStore = defineStore('tasks', {
         const authStore = useAuthStore()
         
         const data = await $fetch<Task>(`${config.public.apiBase}/tasks/${taskId}`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+          credentials: 'include',
         })
         
         const index = this.tasks.findIndex(t => (t.task_id || t.id) === taskId)

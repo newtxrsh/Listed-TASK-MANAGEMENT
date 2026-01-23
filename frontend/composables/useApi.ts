@@ -11,13 +11,11 @@ export const useApi = () => {
   const getHeaders = (additionalHeaders?: Record<string, string>): Record<string, string> => {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...additionalHeaders,
     }
 
-    if (authStore.token) {
-      headers.Authorization = `Bearer ${authStore.token}`
-    }
-
+    // No longer using Bearer tokens - sessions are handled via cookies
     return headers
   }
 
@@ -27,6 +25,8 @@ export const useApi = () => {
         method: options.method || 'GET',
         headers: getHeaders(options.headers),
         body: options.body,
+        // Include credentials (cookies) with all requests for session-based auth
+        credentials: 'include',
         onResponseError({ response }) {
           if (response.status === 401) {
             authStore.clearAuth()

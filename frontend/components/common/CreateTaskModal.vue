@@ -733,10 +733,9 @@ const submitTask = async () => {
     
     const response = await fetch(`${config.public.apiBase}/tasks`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-      },
+      credentials: 'include', // Include session cookie for authentication
       body: formData,
+      // Note: Don't set Content-Type header - browser will set it automatically with boundary for FormData
     })
     
     if (!response.ok) {

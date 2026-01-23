@@ -94,21 +94,7 @@
           </button>
         </div>
       </div>
-
-      <!-- Remember Me -->
-      <div class="flex items-center">
-        <label class="group flex cursor-pointer items-center gap-3">
-          <div class="relative">
-            <input type="checkbox" v-model="remember" class="peer sr-only">
-            <div class="h-5 w-5 rounded-md border border-gray-300 bg-white transition-all duration-150 peer-checked:border-blue-600 peer-checked:bg-blue-600"></div>
-            <svg class="pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 text-white opacity-0 transition-opacity peer-checked:opacity-100" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <span class="text-sm text-white/70 group-hover:text-white transition-colors">Remember me</span>
-        </label>
-      </div>
-
+      
       <!-- Submit Button -->
       <button 
         type="submit" 

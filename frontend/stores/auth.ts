@@ -16,26 +16,23 @@ export interface User {
 
 export interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   isLoading: boolean
   lastActivity: number | null
-  sessionTimeout: number // in milliseconds
+  sessionTimeout: number // in milliseconds (24 hours = 86400000)
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: null,
-    token: null,
     isAuthenticated: false,
     isLoading: true,
     lastActivity: null,
-    sessionTimeout: 30 * 60 * 1000, // 30 minutes default
+    sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours (matches backend session lifetime)
   }),
 
   getters: {
     currentUser: (state) => state.user,
-    authToken: (state) => state.token,
     isLoggedIn: (state) => state.isAuthenticated,
     userName: (state) => {
       if (state.user?.fname) return state.user.fname
@@ -77,13 +74,9 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    setToken(token: string) {
-      this.token = token
+    setAuthenticated() {
       this.isAuthenticated = true
       this.updateActivity()
-      if (import.meta.client) {
-        localStorage.setItem('auth_token', token)
-      }
     },
 
     setUser(user: User) {
@@ -99,11 +92,9 @@ export const useAuthStore = defineStore('auth', {
 
     clearAuth() {
       this.user = null
-      this.token = null
       this.isAuthenticated = false
       this.lastActivity = null
       if (import.meta.client) {
-        localStorage.removeItem('auth_token')
         localStorage.removeItem('last_activity')
       }
     },
@@ -112,39 +103,39 @@ export const useAuthStore = defineStore('auth', {
       this.isLoading = true
       
       if (import.meta.client) {
-        const storedToken = localStorage.getItem('auth_token')
         const storedActivity = localStorage.getItem('last_activity')
         
         if (storedActivity) {
           this.lastActivity = parseInt(storedActivity, 10)
         }
         
-        if (storedToken) {
-          // Check if session has expired
-          if (this.lastActivity && Date.now() - this.lastActivity > this.sessionTimeout) {
-            console.log('Session expired, clearing auth')
+        // Check if session has expired based on last activity
+        if (this.lastActivity && Date.now() - this.lastActivity > this.sessionTimeout) {
+          console.log('Session expired, clearing auth')
+          this.clearAuth()
+          this.isLoading = false
+          return
+        }
+        
+        // Verify session by fetching user data (session cookie will be sent automatically)
+        try {
+          const { fetchCurrentUser } = useApi()
+          const user = await fetchCurrentUser()
+          if (user) {
+            this.user = user
+            this.isAuthenticated = true
+            this.updateActivity()
+          } else {
+            // Session is invalid, clear auth
             this.clearAuth()
-            this.isLoading = false
-            return
           }
-          
-          this.token = storedToken
-          this.isAuthenticated = true
-          
-          // Verify token by fetching user data
-          try {
-            const { fetchCurrentUser } = useApi()
-            const user = await fetchCurrentUser()
-            if (user) {
-              this.user = user
-              this.updateActivity()
-            } else {
-              // Token is invalid, clear auth
-              this.clearAuth()
-            }
-          } catch (error) {
-            console.error('Failed to verify auth token:', error)
+        } catch (error: any) {
+          // If 401, session is invalid/expired
+          if (error?.response?.status === 401) {
+            console.log('Session invalid or expired')
             this.clearAuth()
+          } else {
+            console.error('Failed to verify session:', error)
           }
         }
       }
@@ -158,9 +149,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await $fetch<User>(`${config.public.apiBase}/me`, {
           method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
+          credentials: 'include',
           body: data,
         })
         
@@ -174,7 +163,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async refreshUser() {
-      if (!this.token) return
+      if (!this.isAuthenticated) return
       
       try {
         const { fetchCurrentUser } = useApi()
@@ -192,12 +181,14 @@ export const useAuthStore = defineStore('auth', {
       const config = useRuntimeConfig()
       
       try {
-        const response = await $fetch<{ token: string; user?: User }>(`${config.public.apiBase}/login`, {
+        const response = await $fetch<{ message?: string; user?: User }>(`${config.public.apiBase}/login`, {
           method: 'POST',
+          credentials: 'include', // Include cookies for session-based auth
           body: { email, password },
         })
 
-        this.setToken(response.token)
+        // Session cookie is set automatically by the server
+        this.setAuthenticated()
         
         if (response.user) {
           this.setUser(response.user)
@@ -210,7 +201,23 @@ export const useAuthStore = defineStore('auth', {
 
         return { success: true }
       } catch (error: any) {
-        const message = error?.data?.message || 'Login failed. Please try again.'
+        // Handle validation errors (422) and other errors
+        // Nuxt's $fetch structures errors differently - check multiple possible locations
+        let message = 'Login failed. Please try again.'
+        
+        if (error?.data?.message) {
+          message = error.data.message
+        } else if (error?.data?.errors?.email?.[0]) {
+          message = error.data.errors.email[0]
+        } else if (error?.response?._data?.message) {
+          message = error.response._data.message
+        } else if (error?.response?._data?.errors?.email?.[0]) {
+          message = error.response._data.errors.email[0]
+        } else if (error?.message) {
+          message = error.message
+        }
+        
+        console.error('Login error:', error)
         return { success: false, error: message }
       }
     },
@@ -219,16 +226,16 @@ export const useAuthStore = defineStore('auth', {
       const config = useRuntimeConfig()
       
       try {
-        const response = await $fetch<{ token: string; message?: string }>(`${config.public.apiBase}/register`, {
+        const response = await $fetch<{ message?: string }>(`${config.public.apiBase}/register`, {
           method: 'POST',
+          credentials: 'include',
           body: { email, password, first_name: firstName, last_name: lastName },
         })
 
-        if (response.token) {
-          this.setToken(response.token)
-        }
+        // Note: Registration may create a session, but user needs to verify email first
+        // Session will be established after email verification
 
-        return { success: true, token: response.token }
+        return { success: true }
       } catch (error: any) {
         const message = error?.data?.message || 'Registration failed. Please try again.'
         return { success: false, error: message }
@@ -239,14 +246,10 @@ export const useAuthStore = defineStore('auth', {
       const config = useRuntimeConfig()
       
       try {
-        if (this.token) {
-          await $fetch(`${config.public.apiBase}/logout`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
-          })
-        }
+        await $fetch(`${config.public.apiBase}/logout`, {
+          method: 'POST',
+          credentials: 'include', // Include session cookie
+        })
       } catch (error) {
         console.error('Logout API call failed:', error)
       } finally {
@@ -261,9 +264,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await $fetch<{ message: string; redirect_url?: string }>(`${config.public.apiBase}/email/verify-otp`, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
+          credentials: 'include',
           body: { code },
         })
 
@@ -289,9 +290,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await $fetch<{ message: string; expires_in_seconds?: number }>(`${config.public.apiBase}/email/resend-otp`, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
+          credentials: 'include',
         })
 
         return { 
@@ -351,14 +350,14 @@ export const useAuthStore = defineStore('auth', {
       const config = useRuntimeConfig()
       
       try {
-        const response = await $fetch<{ token: string; message: string; user?: any }>(`${config.public.apiBase}/verify-and-register`, {
+        const response = await $fetch<{ message: string; user?: any }>(`${config.public.apiBase}/verify-and-register`, {
           method: 'POST',
+          credentials: 'include',
           body: { code, email, password, first_name: firstName, last_name: lastName },
         })
 
-        if (response.token) {
-          this.setToken(response.token)
-        }
+        // Session cookie is set automatically by the server after registration
+        this.setAuthenticated()
 
         if (response.user) {
           this.setUser(response.user)

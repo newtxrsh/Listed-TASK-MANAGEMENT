@@ -258,9 +258,7 @@ export const useGooglePicker = (options: UseGooglePickerOptions = {}) => {
         `${config.public.apiBase}/google-drive/download`,
         {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+          credentials: 'include',
           body: {
             fileId: file.id,
             fileName: file.name,
